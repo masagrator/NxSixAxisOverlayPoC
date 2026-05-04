@@ -45,9 +45,7 @@ public:
         HidSixAxisSensorState sixaxis = {0};
         u64 style_set = padGetStyleSet(&pad);
 		size_t id = 0;
-        if (style_set & HidNpadStyleTag_NpadHandheld)
-            id = 0;
-        else if (style_set & HidNpadStyleTag_NpadFullKey)
+        if (style_set & HidNpadStyleTag_NpadFullKey)
             id = 1;
         else if (style_set & HidNpadStyleTag_NpadJoyDual) {
             // For JoyDual, read from either the Left or Right Joy-Con depending on which is/are connected
@@ -59,6 +57,8 @@ public:
         }
 		hidGetSixAxisSensorStates(handles[id], &sixaxis, 1);
 		if (sixaxis.acceleration.x == 0.f && sixaxis.acceleration.y == 0.f && sixaxis.acceleration.z == -1.f) {
+			//When switching between different applets, our AppletResourceUserId "0" loses focus and we need to restore it.
+			//This shows up by acceleration being resetted to {0, 0, -1.0}
 			if (R_SUCCEEDED(rc)) hidsysSetAppletResourceUserId();
 			hidGetSixAxisSensorStates(handles[id], &sixaxis, 1);
 		}
@@ -100,6 +100,8 @@ public:
 	Service srv_hidbus;
 	// libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
 	virtual void initServices() override {
+		//Using this function ties common AppletResourceUserId 0 with AppletResourceUserId of currently focused applet
+		//Without calling it, many functions relying on AppletResourceUserId are not working properly in sysmodule space, like hidStartSixAxisSensor
 		rc = hidsysSetAppletResourceUserId();
 		
 		hidGetSixAxisSensorHandles(&handles[0], 1, HidNpadIdType_Handheld, HidNpadStyleTag_NpadHandheld);
