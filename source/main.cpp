@@ -100,7 +100,6 @@ public:
 	Service srv_hidbus;
 	// libtesla already initialized fs, hid, pl, pmdmnt, hid:sys and set:sys
 	virtual void initServices() override {
-		hidsysInitialize();
 		rc = hidsysSetAppletResourceUserId();
 		
 		hidGetSixAxisSensorHandles(&handles[0], 1, HidNpadIdType_Handheld, HidNpadStyleTag_NpadHandheld);
@@ -113,7 +112,6 @@ public:
 	}  // Called at the start to initialize all services necessary for this Overlay
 	
 	virtual void exitServices() override {
-		hidsysExit();
 		hidStopSixAxisSensor(handles[0]);
 		hidStopSixAxisSensor(handles[1]);
 		hidStopSixAxisSensor(handles[2]);
